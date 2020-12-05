@@ -98,7 +98,7 @@ name: slide3
   
 - **Not a cartographer**
 
-  - Not about making maps/ making maps better
+  - Not about maps in general/ making maps better
   
 - **Architect &amp; Planner**
 
@@ -134,13 +134,13 @@ name: slide5
 
 .pull-left[
 
-**Thematic maps** show geographical patterns for a some subject matter.
+**Thematic maps** show geographical patterns for a particular subject.
 
-- Primary focus is to **communicate information about the subject matter**. Everything else is secondary.
+- Primary focus is to **communicate information about that subject**. Everything else is secondary.
 
 - Not meant to be used for geographical location (navigation).
 
-- Language, population, temperature
+- Language, population, temperature, etc.
 
 ]
 
@@ -227,6 +227,10 @@ OSM uses [`tags`](https://wiki.openstreetmap.org/wiki/Tags) to describe features
 
 [`Tags`](https://wiki.openstreetmap.org/wiki/Tags) have two parts: a [`key`](https://wiki.openstreetmap.org/wiki/Category:Keys) and a corresponding [`value`](https://wiki.openstreetmap.org/wiki/Map_features)
 
+- `highway=residential`
+
+- `natural=water`
+
 Various methods are available for downloading data.
 
 - OSM website
@@ -244,6 +248,8 @@ Various methods are available for downloading data.
 In R, we can get OpenStreetMap data using the {[`osmdata`](https://docs.ropensci.org/osmdata/)} package!
 
 ]
+
+.footnote[Packages are collections of functions and the necessary code to run them.]
 
 ---
 
@@ -335,7 +341,7 @@ The {[`tidyr`](https://tidyr.tidyverse.org/)} and {[`dplyr`](https://dplyr.tidyv
 
 ![](images/tidyData.png)
 
-Hadley Wickham and Garrett Grolemund. 2017. R for Data Science: Import, Tidy, Transform, Visualize, and Model Data (1st. ed.). O'Reilly Media, Inc.
+Hadley Wickham and Garrett Grolemund. 2017. [R for Data Science](https://r4ds.had.co.nz/): Import, Tidy, Transform, Visualize, and Model Data (1st. ed.). O'Reilly Media, Inc.
 
 ]
 
@@ -351,17 +357,6 @@ The {[`tidyr`](https://tidyr.tidyverse.org/)} and {[`dplyr`](https://dplyr.tidyv
 
 class: inverse
 name: slide13
-
-## 2. Tidy Data
-
-The {[`osmdata`](https://docs.ropensci.org/osmdata/)} package gives us tidy data!
-
-![](images/tidyTraffic.png)
-
----
-
-class: inverse
-name: slide14
 
 ## 2. Tidy Data
 
@@ -391,6 +386,17 @@ name: slide14
 ## $ traffic_signals.direction &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N...
 ## $ geometry                  &lt;POINT [°]&gt; POINT (77.58583 12.91716), POINT (7...
 ```
+
+---
+
+class: inverse
+name: slide14
+
+## 2. Tidy Data
+
+The {[`osmdata`](https://docs.ropensci.org/osmdata/)} package gives us tidy data!
+
+![](images/tidyTraffic.png)
 
 ---
 
@@ -463,7 +469,7 @@ name: slide17
 
 ## 3. Present Data
 
-A layered approach with the Grammar of Graphics!
+A layered approach with the [`Grammar of Graphics`](https://www.google.co.in/books/edition/The_Grammar_of_Graphics/NRyGnjeNKJIC?hl=en&amp;gbpv=0)!
 
 .pull-left[
 
@@ -881,7 +887,6 @@ tm_shape(bangaloreWardBoundary) +
   tm_fill(col = "#a7c957") +
   tm_layout(bg.color = "#56666b",
             frame = F,
-            frame.lwd = NA,
             attr.outside = T,
             outer.margins = 0,
             asp = 0,
