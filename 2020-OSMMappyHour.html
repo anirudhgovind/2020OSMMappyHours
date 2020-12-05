@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>Visualizing OSM Data using R</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Anirudh Govind" />
+    <meta name="date" content="2020-12-05" />
+    <script src="libs/header-attrs-2.5/header-attrs.js"></script>
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link rel="stylesheet" href="custom.css" type="text/css" />
+    <link rel="stylesheet" href="custom-fonts.css" type="text/css" />
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# Visualizing OSM Data using R
+## OSM India Virtual Mappy Hours
+### Anirudh Govind
+### 2020-12-05
+
+---
+
+
+
+
+class: inverse
+name: slide1
+
+## Structure
+
+**Focus on the process** of making a map using OSM data in R.
+
+--
+
+.pull-left[
+
+- Thematic Mapping: A brief introduction
+
+- Conceptual ideas for working with R
+
+- Making a map in R using OSM Data
+
+- Open for discussion
+
+]
+
+---
+
+class: inverse
+name: slide2
+
+## Who I am (and not)
+
+.pull-left[
+
+- **Not a Developer**
+
+  - Not about the code/ coding better
+  
+- **Not a cartographer**
+
+  - Not about making maps/ making maps better
+  
+- **Architect &amp; Planner**
+
+  - Maps to understand specific aspects of cities/ urban areas (Bangalore)
+  
+  - Thematic maps
+
+  - OpenStreetMap Data
+
+]
+
+--
+
+.pull-right[
+
+![](images/map_challenge_themes_2020.jpg)
+
+Initiated by Topi Tjukanov [@tjukanov](https://twitter.com/tjukanov) in 2019.
+
+]
+
+---
+
+class: inverse
+name: slide3
+
+## Who I am (and not)
+
+
+.pull-left[
+
+- **Not a Developer**
+
+  - Not about the code/ coding better
+  
+- **Not a cartographer**
+
+  - Not about making maps/ making maps better
+  
+- **Architect &amp; Planner**
+
+  - Maps to understand specific aspects of cities/ urban areas (Bangalore)
+  
+  - Thematic maps
+
+  - OpenStreetMap Data
+
+]
+
+.pull-right[
+
+![](images/map_challenge_themes_2020_osm.jpg)
+
+Initiated by Topi Tjukanov [@tjukanov](https://twitter.com/tjukanov) in 2019.
+
+]
+
+---
+class: inverse, center, middle
+name: slide4
+
+## Thematic Mapping
+
+---
+
+class: inverse
+name: slide5
+
+## Thematic Mapping
+
+
+.pull-left[
+
+**Thematic maps** show geographical patterns for a some subject matter.
+
+- Primary focus is to **communicate information about the subject matter**. Everything else is secondary.
+
+- Not meant to be used for geographical location (navigation).
+
+- Language, population, temperature
+
+]
+
+---
+
+class: inverse
+name: slide6
+
+## Examples
+
+.pull-left[
+
+![](images/Day1.png)
+
+]
+
+--
+
+.pull-right[
+
+![](images/Day2.png)
+
+]
+
+---
+
+class: inverse
+name: slide7
+
+## Examples
+
+.pull-left[
+
+![](images/Day5.png)
+
+]
+
+--
+
+.pull-right[
+
+![](images/Day9.png)
+
+]
+
+---
+
+class: inverse, center, middle
+name: slide8
+
+## Conceptual Ideas for working with R
+
+---
+
+class: inverse
+name: slide9
+
+## How do we make a map?
+
+.pull-left[
+
+**Steps in making a map**
+
+1. Obtain data
+
+2. Ensure this data is relevant &amp; properly structured
+
+3. Put the map together with appropriate representation
+
+]
+
+---
+
+class: inverse
+name: slide10
+
+## 1. Obtain Data
+
+--
+
+.pull-left[
+
+OSM uses [`tags`](https://wiki.openstreetmap.org/wiki/Tags) to describe features in maps.
+
+[`Tags`](https://wiki.openstreetmap.org/wiki/Tags) have two parts: a [`key`](https://wiki.openstreetmap.org/wiki/Category:Keys) and a corresponding [`value`](https://wiki.openstreetmap.org/wiki/Map_features)
+
+Various methods are available for downloading data.
+
+- OSM website
+
+- Data extracts
+
+- APIs (overpass)
+
+]
+
+--
+
+.pull-right[
+
+In R, we can get OpenStreetMap data using the {[`osmdata`](https://docs.ropensci.org/osmdata/)} package!
+
+]
+
+---
+
+class: inverse
+name: slide11
+
+## 1. Obtain Data
+
+{[`osmdata`](https://docs.ropensci.org/osmdata/)} package!
+
+--
+
+.pull-left[
+
+
+```r
+# Build a query
+
+query &lt;- getbb("LOCATION") %&gt;%
+  opq() %&gt;%
+  add_osm_feature("KEY", "VALUE")
+
+# Query the OSM database (overpass)
+
+data &lt;- osmdata_sf(query)
+
+# Extract geometry
+
+dataExtract &lt;- data$osm_points OR
+
+dataExtract &lt;- data$osm_lines OR
+
+dataExtract &lt;- data$osm_polygons
+```
+
+]
+
+--
+
+.pull-right[
+
+
+```r
+# Get traffic lights or signals location data from OSM.
+
+# Build a query
+
+query &lt;- getbb("Bangalore") %&gt;%
+  opq() %&gt;%
+  add_osm_feature("highway", "traffic_signals")
+
+# Query the OSM database (overpass)
+
+trafficSignalsData &lt;- osmdata_sf(query)
+
+# Extract geometry
+
+trafficSignals &lt;- trafficSignalsData$osm_points
+```
+
+]
+
+---
+
+class: inverse
+name: slide12
+
+## 2. Tidy Data
+
+Data is often messy!
+
+--
+
+.pull-left[
+
+R relies on the [`tidy data framework`](http://statseducation.com/Introduction-to-R/modules/tidy%20data/tidy-data/)
+
+1. Every variable has its own column
+
+2. Every observation has its own row
+
+3. Every value has its own cell
+
+The {[`tidyr`](https://tidyr.tidyverse.org/)} and {[`dplyr`](https://dplyr.tidyverse.org/)} packages provide a set of tools for wrangling data into this format.
+
+]
+
+.pull-right[
+
+![](images/tidyData.png)
+
+Hadley Wickham and Garrett Grolemund. 2017. R for Data Science: Import, Tidy, Transform, Visualize, and Model Data (1st. ed.). O'Reilly Media, Inc.
+
+]
+
+--
+
+.footnote[
+
+The {[`tidyr`](https://tidyr.tidyverse.org/)} and {[`dplyr`](https://dplyr.tidyverse.org/)} packages are part of the [`Tidyverse`](https://www.tidyverse.org/); a set of packages sharing the same design philosophies, grammar and data structures.
+
+]
+
+---
+
+class: inverse
+name: slide13
+
+## 2. Tidy Data
+
+The {[`osmdata`](https://docs.ropensci.org/osmdata/)} package gives us tidy data!
+
+![](images/tidyTraffic.png)
+
+---
+
+class: inverse
+name: slide14
+
+## 2. Tidy Data
+
+
+```
+## Rows: 633
+## Columns: 21
+## $ osm_id                    &lt;chr&gt; "17327106", "26529522", "26529553", "6095...
+## $ name                      &lt;chr&gt; "Aurobindo Circle", NA, NA, "Prof Ashirva...
+## $ alt_name                  &lt;chr&gt; NA, NA, NA, NA, "Vellara Junction", NA, N...
+## $ barrier                   &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N...
+## $ bicycle                   &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N...
+## $ camera.mount              &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N...
+## $ camera.type               &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N...
+## $ crossing                  &lt;chr&gt; NA, NA, "traffic_signals", NA, NA, "traff...
+## $ designation               &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N...
+## $ highway                   &lt;chr&gt; "traffic_signals", "traffic_signals", "tr...
+## $ junction                  &lt;chr&gt; NA, NA, NA, "yes", "yes", NA, NA, NA, NA,...
+## $ man_made                  &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N...
+## $ name.kn                   &lt;chr&gt; "à²…à²°à²µà²¿à²‚à²¦ à²µà³ƒà²¤à³\215à²¤", ...
+## $ note                      &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N...
+## $ source                    &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N...
+## $ surveillance              &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N...
+## $ surveillance.type         &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N...
+## $ surveillance.zone         &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N...
+## $ traffic_signals           &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N...
+## $ traffic_signals.direction &lt;chr&gt; NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N...
+## $ geometry                  &lt;POINT [°]&gt; POINT (77.58583 12.91716), POINT (7...
+```
+
+---
+
+class: inverse
+name: slide15
+
+## 2. Tidy Data
+
+We can further clean up the data by keeping only the columns we need; `osm_id` and the `geometry`
+
+.pull-left[
+
+
+```r
+# Select specific columns
+
+trafficSignals %&gt;% 
+  select(osm_id, geometry)
+```
+
+]
+
+.pull-right[
+
+![](images/tidierTraffic.png)
+
+]
+
+---
+
+class: inverse
+name: slide16
+
+## How do we make a map?
+
+.pull-left[
+
+**Steps in making a map**
+
+1. Obtain data
+
+2. Ensure this data is relevant &amp; properly structured
+
+3. Put the map together with appropriate representation
+
+]
+
+--
+
+.pull-right[
+
+**How we go about doing it**
+
+1. OpenStreetMap - {[`osmdata`](https://docs.ropensci.org/osmdata/)}
+
+2. Tidy it - {[`tidyr`](https://tidyr.tidyverse.org/)} &amp; {[`dplyr`](https://dplyr.tidyverse.org/)} - which are part of the {[`Tidyverse`](https://www.tidyverse.org/)}
+
+3. ?
+
+]
+
+--
+
+## Questions?
+
+---
+
+class: inverse
+name: slide17
+
+## 3. Present Data
+
+A layered approach with the Grammar of Graphics!
+
+.pull-left[
+
+Hadley Wickham (2010) [`A Layered Grammar of Graphics`](https://vita.had.co.nz/papers/layered-grammar.html), Journal of Computational and Graphical Statistics, 19:1, 3-28, DOI: 10.1198/jcgs.2009.07098 
+
+]
+
+--
+
+.pull-right[
+
+We build maps or visualizations step-by-step rather than a trial and error approach.
+
+1. Geometry or Shape; points, lines or polygons or a combination of them
+
+2. Data;
+
+3. Aesthetics; colour, size, transparency, etc
+
+4. Composition; titles, sub-titles, footnotes, graphic scales, etc
+
+]
+
+---
+
+class: inverse
+name: slide18
+
+## 3. Present Data
+
+A layered approach with the Grammar of Graphics!
+
+.pull-left[
+
+
+
+
+```r
+# Plot Bangalore ward map using borders
+
+tm_shape(bangaloreWards) +
+  tm_borders()
+```
+
+]
+
+--
+
+.pull-right[
+
+&lt;img src="2020-OSMMappyHour_files/figure-html/unnamed-chunk-7-1.png" width="100%" height="100%" /&gt;
+
+]
+
+---
+
+class: inverse
+name: slide19
+
+## 3. Present Data
+
+A layered approach with the Grammar of Graphics!
+
+.pull-left[
+
+
+```r
+# Fill with different colours
+
+tm_shape(bangaloreWards) +
+  tm_borders() +
+  tm_fill(col = "#E5E5E5")
+```
+
+]
+
+.pull-right[
+
+&lt;img src="2020-OSMMappyHour_files/figure-html/unnamed-chunk-9-1.png" width="100%" height="100%" /&gt;
+
+]
+
+---
+
+class: inverse
+name: slide20
+
+## 3. Present Data
+
+A layered approach with the Grammar of Graphics!
+
+.pull-left[
+
+
+```r
+# Add traffic signals
+
+tm_shape(bangaloreWards) +
+  tm_borders() +
+  tm_fill(col = "#E5E5E5") +
+  tm_shape(trafficSignals) +
+  tm_dots(size = 0.1,
+          col = "#FFB703")
+```
+
+]
+
+.pull-right[
+
+&lt;img src="2020-OSMMappyHour_files/figure-html/unnamed-chunk-11-1.png" width="100%" height="100%" /&gt;
+
+]
+
+---
+
+class: inverse
+name: slide21
+
+## 3. Present Data
+
+A layered approach with the Grammar of Graphics!
+
+.pull-left[
+
+
+```r
+# Add titles
+
+tm_shape(bangaloreWards) +
+  tm_borders() +
+  tm_fill(col = "#E5E5E5") +
+  tm_shape(trafficSignals) +
+  tm_dots(size = 0.1,
+          col = "#FFB703") +
+  tm_layout(main.title = "Bangalore's Traffic Lights",
+            frame = F)
+```
+
+]
+
+.pull-right[
+
+&lt;img src="2020-OSMMappyHour_files/figure-html/unnamed-chunk-13-1.png" width="100%" height="100%" /&gt;
+
+]
+
+---
+
+class: inverse
+name: slide22
+
+## How do we make a map?
+
+.pull-left[
+
+**Steps in making a map**
+
+1. Obtain data
+
+2. Ensure this data is relevant &amp; properly structured
+
+3. Put the map together with appropriate representation
+
+]
+
+.pull-right[
+
+**How we go about doing it**
+
+1. OpenStreetMap - {[`osmdata`](https://docs.ropensci.org/osmdata/)}
+
+2. Tidy it - {[`tidyr`](https://tidyr.tidyverse.org/)} &amp; {[`dplyr`](https://dplyr.tidyverse.org/)} - which are part of the {[`Tidyverse`](https://www.tidyverse.org/)}
+
+3. [`Grammar of Graphics`](https://vita.had.co.nz/papers/layered-grammar.html) - using the {[`tmap`](https://cran.r-project.org/web/packages/tmap/vignettes/tmap-getstarted.html)} package
+
+]
+
+--
+
+## Questions?
+
+--
+
+.pull-left[
+
+[See another example!](#slide23)
+
+]
+
+
+.pull-right[
+
+[Summarize!](#slide32)
+
+]
+ 
+---
+
+class: inverse, middle, center
+name: slide23
+
+## Let's make a map!
+
+---
+
+class: inverse
+name: slide24
+
+## Bangalore's Parks
+
+.pull-left[
+
+Let's recreate this map showing Bangalore's Parks!
+
+]
+
+.pull-right[
+
+![](images/Day7.png)
+
+]
+
+---
+
+class: inverse
+name: slide25
+
+## Bangalore's Parks
+
+.pull-left[
+
+
+```r
+# Load Bangalore ward data and transform it
+
+bangaloreWardBoundary &lt;- read_sf(here::here("data/bangaloreWardBoundary.shp"))
+
+bangaloreWardBoundary &lt;- bangaloreWardBoundary %&gt;% 
+  st_transform(3857)
+```
+
+]
+
+--
+
+.pull-right[
+
+
+```r
+# Get parks data from OSM
+
+# Build a query
+
+query &lt;- getbb("Bangalore") %&gt;%
+  opq() %&gt;%
+  add_osm_feature("leisure", "park")
+
+# Query the OSM database (overpass)
+
+parksData &lt;- osmdata_sf(query)
+
+# Extract geometry
+
+parks &lt;- parksData$osm_polygons
+```
+
+]
+
+---
+
+class: inverse
+name: slide26
+
+## Bangalore's Parks
+
+.pull-left[
+
+
+
+
+
+```r
+# Tidy the parks data and keep only necessary columns
+
+parks &lt;- parks %&gt;% 
+  select(osm_id, geometry)
+
+# Transform
+
+parks &lt;- parks %&gt;% 
+  st_transform(3857)
+
+# Keep only those parks which are within the boundary
+
+bangaloreParks &lt;- st_intersection(parks, bangaloreWardBoundary)
+```
+
+]
+
+--
+
+.pull-right[
+
+
+```r
+# Calculate areas of parks
+
+bangaloreParks &lt;- bangaloreParks %&gt;% 
+  mutate(area = st_area(.)) %&gt;%
+  mutate(area = as.numeric(area)) %&gt;% 
+  mutate(area = round(area, 2))
+```
+
+]
+
+---
+
+class: inverse
+name: slide27
+
+## Bangalore's Parks
+
+.pull-left[
+
+
+```r
+# Plot Bangalore ward map using borders
+
+tm_shape(bangaloreWardBoundary) +
+  tm_borders()
+```
+
+]
+
+--
+
+.pull-right[
+
+&lt;img src="2020-OSMMappyHour_files/figure-html/unnamed-chunk-20-1.png" width="100%" height="100%" /&gt;
+
+]
+
+---
+
+class: inverse
+name: slide28
+
+## Bangalore's Parks
+
+.pull-left[
+
+
+```r
+# Plot Bangalore's Parks
+
+tm_shape(bangaloreWardBoundary) +
+  tm_borders() +
+  tm_shape(bangaloreParks) +
+  tm_fill()
+```
+
+]
+
+.pull-right[
+
+&lt;img src="2020-OSMMappyHour_files/figure-html/unnamed-chunk-22-1.png" width="100%" height="100%" /&gt;
+
+]
+
+---
+
+class: inverse
+name: slide29
+
+## Bangalore's Parks
+
+.pull-left[
+
+
+```r
+# Add colours and lineweights
+
+tm_shape(bangaloreWardBoundary) +
+  tm_borders(col = "#a7c957",
+             lwd = 3) +
+  tm_shape(bangaloreParks) +
+  tm_fill(col = "#a7c957")
+```
+
+]
+
+.pull-right[
+
+&lt;img src="2020-OSMMappyHour_files/figure-html/unnamed-chunk-24-1.png" width="100%" height="100%" /&gt;
+
+]
+
+---
+
+class: inverse
+name: slide30
+
+## Bangalore's Parks
+
+.pull-left[
+
+
+```r
+# Add background colour and margins
+
+tm_shape(bangaloreWardBoundary) +
+  tm_borders(col = "#a7c957",
+             lwd = 3) +
+  tm_shape(bangaloreParks) +
+  tm_fill(col = "#a7c957") +
+  tm_layout(bg.color = "#56666b",
+            frame = F,
+            frame.lwd = NA,
+            attr.outside = T,
+            outer.margins = 0,
+            asp = 0,
+            scale = 0.8)
+```
+
+]
+
+.pull-right[
+
+&lt;img src="2020-OSMMappyHour_files/figure-html/unnamed-chunk-26-1.png" width="100%" height="100%" /&gt;
+
+]
+
+---
+
+class: inverse
+name: slide31
+
+## Bangalore's Parks
+
+.pull-left[
+
+
+```r
+# Add titles and sub-titles
+
+tm_shape(bangaloreWardBoundary) +
+  tm_borders(col = "#a7c957",
+             lwd = 3) +
+  tm_shape(bangaloreParks) +
+  tm_fill(col = "#a7c957") +
+  tm_layout(bg.color = "#56666b",
+            frame = F,
+            attr.outside = T,
+            outer.margins = 0,
+            asp = 0,
+            scale = 0.8,
+            main.title = "Bangalore's Parks",
+            main.title.color = "#a7c957",
+            main.title.size = 1.75,
+            main.title.fontfamily = "Arial Narrow",
+            title = "Total area of parks in Bangalore = ~9.35km²",
+            title.color = "#a7c957",
+            title.size = 0.6,
+            title.position = c("right", "bottom"))
+```
+
+]
+
+.pull-right[
+
+&lt;img src="2020-OSMMappyHour_files/figure-html/unnamed-chunk-28-1.png" width="100%" height="100%" /&gt;
+
+]
+
+---
+
+class: inverse
+name: slide32
+
+## Examples
+
+.pull-left[
+
+![](images/Day6.png)
+
+]
+
+--
+
+.pull-right[
+
+![](images/Day8-2.png)
+
+]
+
+---
+
+class: inverse
+name: slide33
+
+## Examples
+
+.pull-left[
+
+![](images/Day4.png)
+
+]
+
+--
+
+.pull-right[
+
+![](images/Day3-1.png)
+
+]
+
+---
+
+class: inverse
+name: slide34
+
+## Summary
+
+.pull-left[
+
+What we've seen today:
+
+- A brief introduction to thematic mapping
+
+- Core concepts for working with R
+
+  - Getting data from OSM with the {[`osmdata`](https://docs.ropensci.org/osmdata/)} package
+  
+  - Tidy data with the {[`tidyr`](https://tidyr.tidyverse.org/) and [`dplyr`](https://dplyr.tidyverse.org/)} packages which are part of the {[`tidyverse`](https://www.tidyverse.org/)}
+  
+  - Making maps based on the [`Grammar of Graphics`](https://vita.had.co.nz/papers/layered-grammar.html) using the {[`tmap`](https://cran.r-project.org/web/packages/tmap/vignettes/tmap-getstarted.html)} package 
+  
+- Put this into practice with an example
+
+- Examples of maps made with OSM data
+
+]
+
+---
+
+class: inverse, middle, center
+name: slide35
+
+# Thanks!
+
+Code used to create all the maps can be found on  [github](https://github.com/anirudhgovind/30DayMapChallenge)!
+
+Find me on twitter at [_anirudhgovind](https://twitter.com/_anirudhgovind)
+
+&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;br&gt;&lt;br&gt;
+
+Slides created using the R package {[`xaringan`](https://slides.yihui.org/xaringan/#1)}]
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"ratio": "16:9",
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>
